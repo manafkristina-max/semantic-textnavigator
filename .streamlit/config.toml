@@ -1,0 +1,8 @@
+[server]
+port = 8501
+headless = true
+# Автоматический перезапуск страницы после сохранения кода.
+runOnSave = true
+
+[browser]
+gatherUsageStats = false

@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Semantic TextNavigator — Product Case Study</title>
+<meta name="description" content="Продуктовый кейс: действующие условия договоров поставки с проверяемыми цитатами. Роль — Product Owner, разработка — Claude Code.">
+<style>
+  :root {
+    --bg: #fafaf9;
+    --surface: #ffffff;
+    --ink: #1c1f23;
+    --ink-2: #4a5059;
+    --ink-3: #7b828c;
+    --line: #e6e4df;
+    --accent: #b45309;
+    --accent-soft: #fdf3e3;
+    --ok: #2f7d4f;
+    --ok-soft: #e9f5ee;
+    --warn: #a16207;
+    --muted-soft: #f1f0ed;
+    --radius: 12px;
+    --maxw: 1080px;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(180,83,9,.3); }
+  a:hover { border-bottom-color: var(--accent); }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+  header.hero { padding: 72px 0 48px; border-bottom: 1px solid var(--line); background: var(--surface); }
+  .eyebrow { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+  h1 { font-size: clamp(32px, 5vw, 52px); line-height: 1.1; margin: 12px 0 16px; letter-spacing: -.02em; }
+  .lead { font-size: clamp(17px, 2.2vw, 21px); color: var(--ink-2); max-width: 780px; margin: 0 0 28px; }
+  .meta { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin-top: 8px; }
+  .meta div { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .meta b { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); font-weight: 600; margin-bottom: 2px; }
+  .meta span { font-size: 14px; }
+  .cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+  .btn { display: inline-block; padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 15px; border: 1px solid var(--line); color: var(--ink); background: var(--surface); }
+  .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  nav.toc { position: sticky; top: 0; z-index: 5; background: rgba(250,250,249,.92); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); }
+  nav.toc .wrap { display: flex; gap: 18px; overflow-x: auto; padding-top: 10px; padding-bottom: 10px; scrollbar-width: none; }
+  nav.toc a { border: 0; color: var(--ink-3); font-size: 13px; white-space: nowrap; }
+  nav.toc a:hover { color: var(--ink); }
+  section { padding: 64px 0; border-bottom: 1px solid var(--line); }
+  .num { font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: .06em; }
+  h2 { font-size: clamp(24px, 3.4vw, 34px); line-height: 1.2; margin: 6px 0 20px; letter-spacing: -.01em; }
+  h3 { font-size: 18px; margin: 28px 0 10px; }
+  p { margin: 0 0 14px; max-width: 760px; }
+  .muted { color: var(--ink-2); }
+  .small { font-size: 14px; color: var(--ink-3); }
+  .grid { display: grid; gap: 16px; }
+  .g2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .g3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+  .g4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
+  .card h4 { margin: 0 0 6px; font-size: 16px; }
+  .card p { margin: 0; font-size: 15px; color: var(--ink-2); }
+  .kpi { font-size: 34px; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .kpi small { font-size: 14px; font-weight: 500; color: var(--ink-3); display: block; margin-top: 6px; letter-spacing: 0; }
+  .tag { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+  .tag.ok { background: var(--ok-soft); color: var(--ok); }
+  .tag.hyp { background: var(--accent-soft); color: var(--accent); }
+  .tag.todo { background: var(--muted-soft); color: var(--ink-2); }
+  .quote { border-left: 4px solid var(--accent); background: var(--accent-soft); padding: 18px 22px; border-radius: 0 var(--radius) var(--radius) 0; font-size: 19px; font-weight: 600; margin: 8px 0 24px; max-width: 760px; }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); margin: 12px 0 8px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); background: var(--bg); font-weight: 600; }
+  tr:last-child td { border-bottom: 0; }
+  figure { margin: 18px 0 8px; }
+  figure img { width: 100%; height: auto; display: block; border-radius: 10px; border: 1px solid var(--line); box-shadow: 0 6px 24px rgba(28,31,35,.06); background: #fff; }
+  figcaption { font-size: 14px; color: var(--ink-2); margin-top: 10px; }
+  figcaption b { color: var(--ink); }
+  .flow { display: flex; align-items: stretch; gap: 0; flex-wrap: wrap; margin: 18px 0 4px; }
+  .flow .step { flex: 1 1 140px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; position: relative; margin: 0 18px 12px 0; }
+  .flow .step:not(:last-child)::after { content: "→"; position: absolute; right: -16px; top: 50%; transform: translateY(-50%); color: var(--accent); font-weight: 700; }
+  .flow .step b { display: block; font-size: 12px; color: var(--accent); letter-spacing: .06em; }
+  .flow .step span { font-size: 14.5px; }
+  .flow .step.key { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .diagram { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin: 16px 0 8px; overflow-x: auto; }
+  .diagram svg { display: block; width: 100%; min-width: 720px; height: auto; }
+  .bug { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; }
+  .bug div { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px; font-size: 14.5px; }
+  .bug div b { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); margin-bottom: 4px; }
+  ol.lessons { padding-left: 20px; max-width: 780px; }
+  ol.lessons li { margin-bottom: 12px; }
+  footer { padding: 40px 0 64px; color: var(--ink-3); font-size: 14px; }
+  @media (max-width: 860px) {
+    .meta, .g4 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .g3 { grid-template-columns: 1fr; }
+    .bug { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 560px) {
+    .wrap { padding: 0 16px; }
+    header.hero { padding: 48px 0 32px; }
+    section { padding: 44px 0; }
+    .meta, .g2, .g4, .bug { grid-template-columns: 1fr; }
+    .flow .step { flex-basis: 100%; margin-right: 0; margin-bottom: 22px; }
+    .flow .step:not(:last-child)::after { content: "↓"; right: auto; left: 50%; top: auto; bottom: -21px; transform: translateX(-50%); }
+  }
+  @page { size: A4; margin: 14mm 12mm; }
+  @media print {
+    nav.toc { display: none; }
+    body { background: #fff; font-size: 12.5px; }
+    header.hero, section { padding: 22px 0; }
+    .card, figure, .table-wrap, .diagram, .bug, .quote { break-inside: avoid; }
+    h2, h3, .num { break-after: avoid; }
+    .diagram svg { min-width: 0; }
+    a { border: 0; }
+    figure img { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Product Case Study · LegalTech / Procurement</div>
+    <h1>Semantic TextNavigator</h1>
+    <p class="lead">Действующие условия договоров поставки за минуту — и каждое значение открывается до дословной цитаты в исходном документе.</p>
+    <div class="meta">
+      <div><b>Роль</b><span>Product Owner / Product Lead</span></div>
+      <div><b>Разработка</b><span>Claude Code по моей постановке</span></div>
+      <div><b>Стек</b><span>Python 3.13 · Streamlit · pytest</span></div>
+      <div><b>Качество</b><span>34 автотеста · 34 passed</span></div>
+    </div>
+    <div class="cta">
+      <a class="btn primary" href="https://semantic-textnavigator.streamlit.app">Открыть приложение</a>
+      <a class="btn" href="https://github.com/manafkristina-max/semantic-textnavigator">Исходный код</a>
+      <a class="btn" href="CASE_STUDY.md">Полная версия кейса</a>
+    </div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Разделы">
+  <div class="wrap">
+    <a href="#summary">01 Суть</a><a href="#problem">02 Проблема</a><a href="#discovery">03 Гипотеза</a>
+    <a href="#metrics">04 Метрики</a><a href="#scope">05 MVP</a><a href="#journey">06 Решение</a>
+    <a href="#rules">07 Правила</a><a href="#tech">08 Технологии и AI</a><a href="#qa">09 Качество</a>
+    <a href="#results">10 Результаты</a><a href="#decisions">11 Решения</a><a href="#roadmap">12 Roadmap</a><a href="#lessons">13 Выводы</a>
+  </div>
+</nav>
+
+<main>
+
+<section id="summary"><div class="wrap">
+  <div class="num">01 · EXECUTIVE SUMMARY</div>
+  <h2>Ответ за минуту — с доказательством</h2>
+  <div class="grid g3">
+    <div class="card"><h4>Проблема</h4><p>Условия договора разнесены по договору, допсоглашениям, письмам и проектам. Легко применить неподписанное изменение или перепутать аванс с суммой.</p></div>
+    <div class="card"><h4>Решение</h4><p>Загрузка TXT → тип, подпись и связь с договором определяются по содержимому → действующие на дату условия → переход к абзацу-источнику.</p></div>
+    <div class="card"><h4>Результат</h4><p>Работающее приложение, все контрольные ответы на учебном наборе верны, 34 автотеста, публичная ссылка.</p></div>
+  </div>
+  <h3>Моя роль</h3>
+  <p class="muted">Я превратила задачу в проверяемые требования: бизнес-правила юридической интерпретации, модель данных, 14 обязательных тестовых сценариев, требования к цитатам и критерии готовности. Код, тесты и документацию сгенерировал Claude Code. Я принимала результат по критериям, сделала обязательной финальную приемку сценариев в браузере (она выявила 2 дефекта интерфейса) и приняла решения о публикации.</p>
+</div></section>
+
+<section id="problem"><div class="wrap">
+  <div class="num">02 · BUSINESS PROBLEM</div>
+  <h2>Ручная сверка документов — источник дорогих ошибок</h2>
+  <p class="muted">Чтобы узнать действующий срок поставки, закупщик открывает каждый документ и выясняет: подписан ли он, кем, с какой даты действует, какие пункты меняет. Затем сводит итог вручную.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Боль пользователя</th><th>Бизнес-риск</th></tr></thead>
+    <tbody>
+      <tr><td>Письмо «переносим срок» выглядит как изменение условий</td><td>Решение по неподписанному предложению</td></tr>
+      <tr><td>Рядом с суммой стоят аванс, НДС, лимит бюджета</td><td>Оплата или претензия на неверную сумму</td></tr>
+      <tr><td>Рядом со сроком поставки — срок оплаты и дата приемки</td><td>Претензия по неверной дате</td></tr>
+      <tr><td>Ответ «срок — 30.04» нечем подтвердить</td><td>Решение нельзя проверить и защитить</td></tr>
+      <tr><td>Нужно помнить, что чем изменено</td><td>Время специалиста уходит на рутину</td></tr>
+    </tbody>
+  </table></div>
+</div></section>
+
+<section id="discovery"><div class="wrap">
+  <div class="num">03 · DISCOVERY &amp; HYPOTHESIS</div>
+  <h2>Job To Be Done</h2>
+  <div class="quote">Когда мне нужно принять решение по поставке, я хочу за минуту увидеть действующие сумму и срок с основанием, чтобы не применить по ошибке неподписанное изменение.</div>
+  <p class="small">Customer discovery с реальными закупщиками не проводился: проект выполнен как тестовое задание на 6 учебных документах. Ниже факты и гипотезы разделены.</p>
+  <div class="grid g2">
+    <div class="card"><span class="tag ok">Подтверждено</span>
+      <p style="margin-top:10px">В учебных документах есть все типовые ловушки: аванс, бюджетный лимит, срок оплаты, дата приемки, письмо, неподписанный проект. Система верно обрабатывает каждую.</p></div>
+    <div class="card"><span class="tag hyp">Гипотеза</span>
+      <p style="margin-top:10px">Если каждое значение подтверждено цитатой, а спорные случаи честно помечены, закупщик заменит ручную сверку системой, и ошибок с неподписанными изменениями станет меньше.</p></div>
+  </div>
+  <p class="small" style="margin-top:14px">Как проверить: пилот с 3–5 закупщиками на 50–100 реальных пакетах; замер времени до ответа и расхождений с ручной проверкой; интервью о доверии к ответу с цитатой и без нее.</p>
+</div></section>
+
+<section id="metrics"><div class="wrap">
+  <div class="num">04 · GOALS &amp; SUCCESS METRICS</div>
+  <h2>Что считать успехом</h2>
+  <div class="grid g4">
+    <div class="card"><div class="kpi">4 / 4<small>контрольных ответа верны на учебном наборе</small></div></div>
+    <div class="card"><div class="kpi">0<small>примененных неподписанных изменений</small></div></div>
+    <div class="card"><div class="kpi">100%<small>подтвержденных значений имеют проверенную цитату</small></div></div>
+    <div class="card"><div class="kpi">34<small>автотеста, все проходят</small></div></div>
+  </div>
+  <p class="small" style="margin-top:12px">Показатели выше получены на учебном наборе из 6 документов и подтверждены автотестами. На реальных договорах они не измерялись.</p>
+  <h3>Продуктовые KPI <span class="tag todo">предложены, не измерялись</span></h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Метрика</th><th>Определение</th><th>Как измерять</th><th>Ориентир</th></tr></thead>
+    <tbody>
+      <tr><td><b>Точность действующих условий</b></td><td>Доля «Подтверждено», совпадающих с эталонной разметкой</td><td>Размеченная выборка ≥ 100 договоров, прогон при каждом изменении правил</td><td>≥ 99%</td></tr>
+      <tr><td><b>Время до проверенного ответа</b></td><td>Медиана от загрузки пакета до фиксации ответа</td><td>События в интерфейсе против замера ручной сверки</td><td>в 3+ раза быстрее</td></tr>
+      <tr><td>Доля «Требуется проверка»</td><td>Полнота автоматизации</td><td>Логи анализа</td><td>снижается со временем</td></tr>
+    </tbody>
+  </table></div>
+</div></section>
+
+<section id="scope"><div class="wrap">
+  <div class="num">05 · MVP SCOPE &amp; PRIORITIZATION</div>
+  <h2>Точность правил важнее ширины функций</h2>
+  <p class="muted">Бюджет — 4 часа. Приоритет получили три поля, нужных для решения по поставке, и полное покрытие правил подписи, вступления в силу и конфликтов.</p>
+  <div class="grid g3">
+    <div class="card"><span class="tag ok">Must Have · сделано</span>
+      <p style="margin-top:10px">Загрузка TXT (UTF-8, BOM, Windows-1251) · тип и подпись по содержимому · связь по номеру договора · действующие условия на дату · предложения отдельно · цитата с проверкой · 4 вопроса · три статуса значения</p></div>
+    <div class="card"><span class="tag hyp">Should Have · отложено</span>
+      <p style="margin-top:10px">Неустойка (путь расширения проверен, в интерфейс не добавлена) · сверка суммы прописью с цифрами · экспорт в Excel</p></div>
+    <div class="card"><span class="tag todo">Later · roadmap</span>
+      <p style="margin-top:10px">DOCX/PDF · ручное подтверждение спорных значений · косвенные изменения · хранилище и поиск · роли и аудит · интеграции с СЭД/ERP/ЭДО</p></div>
+  </div>
+</div></section>
+
+<section id="journey"><div class="wrap">
+  <div class="num">06 · SOLUTION &amp; USER JOURNEY</div>
+  <h2>От пакета документов к решению</h2>
+  <div class="flow">
+    <div class="step"><b>1</b><span>Загрузка TXT и дата проверки</span></div>
+    <div class="step"><b>2</b><span>Анализ: тип, подпись, связь</span></div>
+    <div class="step"><b>3</b><span>Сводная таблица договоров</span></div>
+    <div class="step"><b>4</b><span>Карточка: действующие условия</span></div>
+    <div class="step key"><b>5</b><span>Показать источник: абзац и цитата</span></div>
+    <div class="step"><b>6</b><span>Решение по поставке</span></div>
+  </div>
+  <p class="small">Все изображения ниже — реальные скриншоты локальной версии на учебном наборе, дата проверки 10.03.2026.</p>
+
+  <figure><img src="assets/01-upload-classification.jpg" alt="Экран загрузки: обработано 6 документов, таблица распознанных документов с типом и статусом подписи">
+    <figcaption><b>Прозрачный вход.</b> Тип, подпись, дата вступления в силу и номер договора определены по содержимому. Ошибку классификации видно до того, как она повлияет на ответ.</figcaption></figure>
+
+  <figure><img src="assets/02-summary-table.jpg" alt="Сводная таблица: STN-101 1 380 000 и 30.04.2026 со звездочкой, STN-102 840 000, STN-103 Нет данных">
+    <figcaption><b>Портфель за один взгляд.</b> Звездочка — значение изменено действующим допсоглашением. STN-103 получает «Нет данных» вместо бюджетного лимита 600 000 ₽. Колонка «Несогласованные изменения» справа не поместилась в кадр.</figcaption></figure>
+
+  <figure><img src="assets/03-card-source.jpg" alt="Карточка STN-101 и панель источника с подсвеченной суммой 1 380 000 в абзаце p6 допсоглашения">
+    <figcaption><b>Доверие и защита решения.</b> Сумма изменена ДС № 1, первоначально — 1 200 000 ₽. «Показать источник» открывает абзац p6, подсвечивает число и подтверждает, что цитата найдена в тексте.</figcaption></figure>
+
+  <div class="grid g2">
+    <figure><img src="assets/05-missing-amount.jpg" alt="Карточка STN-103: сумма Нет данных с цитатой пункта 2.1">
+      <figcaption><b>Честное «нет данных».</b> Вместо числа — цитата пункта 2.1: стоимость в приложении, которого нет в комплекте.</figcaption></figure>
+    <figure><img src="assets/04-question-deliveries.jpg" alt="Ответ на вопрос о поставках раньше 1 апреля: только STN-102, несогласованные переносы отдельно">
+      <figcaption><b>Готовый ответ руководителю.</b> Раньше 01.04.2026 — только STN-102. Перенос срока из письма показан отдельно и на ответ не влияет.</figcaption></figure>
+  </div>
+</div></section>
+
+<section id="rules"><div class="wrap">
+  <div class="num">07 · PRODUCT LOGIC &amp; BUSINESS RULES</div>
+  <h2>Every answer must be traceable to its source</h2>
+  <p class="muted">Ядро продукта — не интерфейс, а правило, какой документ имеет право изменить условия договора.</p>
+  <div class="diagram" role="img" aria-label="Схема: как документ влияет на условия договора">
+    <svg viewBox="0 0 960 330" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, Segoe UI, Roboto, Arial, sans-serif">
+      <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#7b828c"/></marker></defs>
+      <rect x="20" y="130" width="150" height="64" rx="10" fill="#fff" stroke="#1c1f23"/>
+      <text x="95" y="158" text-anchor="middle" font-size="15" font-weight="600" fill="#1c1f23">Документ</text>
+      <text x="95" y="178" text-anchor="middle" font-size="12.5" fill="#4a5059">связан с договором</text>
+      <line x1="170" y1="162" x2="222" y2="162" stroke="#7b828c" marker-end="url(#a)"/>
+      <rect x="226" y="122" width="146" height="80" rx="10" fill="#fff" stroke="#e6e4df"/>
+      <text x="299" y="152" text-anchor="middle" font-size="14" font-weight="600" fill="#1c1f23">Тип документа?</text>
+      <text x="299" y="174" text-anchor="middle" font-size="12.5" fill="#4a5059">по заголовку,</text>
+      <text x="299" y="191" text-anchor="middle" font-size="12.5" fill="#4a5059">не по имени файла</text>
+      <path d="M372 140 C 410 100, 430 62, 470 62" fill="none" stroke="#7b828c" marker-end="url(#a)"/>
+      <text x="380" y="80" text-anchor="end" font-size="12" fill="#7b828c">письмо, проект</text>
+      <rect x="474" y="36" width="200" height="52" rx="10" fill="#fdf3e3" stroke="#b45309"/>
+      <text x="574" y="60" text-anchor="middle" font-size="13.5" font-weight="600" fill="#b45309">Несогласованное</text>
+      <text x="574" y="78" text-anchor="middle" font-size="13.5" font-weight="600" fill="#b45309">предложение</text>
+      <line x1="372" y1="162" x2="470" y2="162" stroke="#7b828c" marker-end="url(#a)"/>
+      <text x="421" y="154" text-anchor="middle" font-size="11.5" fill="#7b828c">допсоглашение</text>
+      <rect x="474" y="130" width="200" height="64" rx="10" fill="#fff" stroke="#e6e4df"/>
+      <text x="574" y="156" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1c1f23">Подписано обеими</text>
+      <text x="574" y="175" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1c1f23">сторонами?</text>
+      <path d="M574 130 L574 92" fill="none" stroke="#7b828c" marker-end="url(#a)"/>
+      <text x="582" y="114" font-size="12" fill="#7b828c">нет</text>
+      <path d="M574 194 L574 248" fill="none" stroke="#7b828c" marker-end="url(#a)"/>
+      <text x="582" y="226" font-size="12" fill="#7b828c">не ясно</text>
+      <rect x="474" y="252" width="200" height="52" rx="10" fill="#f1f0ed" stroke="#a16207"/>
+      <text x="574" y="283" text-anchor="middle" font-size="13.5" font-weight="600" fill="#a16207">Требуется проверка</text>
+      <line x1="674" y1="162" x2="716" y2="162" stroke="#7b828c" marker-end="url(#a)"/>
+      <text x="682" y="154" font-size="12" fill="#7b828c">да</text>
+      <rect x="720" y="122" width="220" height="80" rx="10" fill="#fff" stroke="#e6e4df"/>
+      <text x="830" y="150" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1c1f23">Дата вступления в силу</text>
+      <text x="830" y="169" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1c1f23">≤ даты проверки?</text>
+      <text x="830" y="189" text-anchor="middle" font-size="12" fill="#4a5059">нет даты → проверка</text>
+      <path d="M830 122 L830 92" fill="none" stroke="#7b828c" marker-end="url(#a)"/>
+      <text x="838" y="112" font-size="12" fill="#7b828c">нет</text>
+      <rect x="730" y="36" width="200" height="52" rx="10" fill="#f1f0ed" stroke="#e6e4df"/>
+      <text x="830" y="60" text-anchor="middle" font-size="13.5" font-weight="600" fill="#4a5059">Не вступило в силу,</text>
+      <text x="830" y="78" text-anchor="middle" font-size="13.5" font-weight="600" fill="#4a5059">условия не меняет</text>
+      <path d="M830 202 L830 248" fill="none" stroke="#7b828c" marker-end="url(#a)"/>
+      <text x="838" y="228" font-size="12" fill="#7b828c">да</text>
+      <rect x="720" y="252" width="220" height="64" rx="10" fill="#e9f5ee" stroke="#2f7d4f"/>
+      <text x="830" y="278" text-anchor="middle" font-size="13.5" font-weight="600" fill="#2f7d4f">Меняет только явно</text>
+      <text x="830" y="297" text-anchor="middle" font-size="13.5" font-weight="600" fill="#2f7d4f">изложенные пункты</text>
+    </svg>
+  </div>
+  <div class="grid g2" style="margin-top:18px">
+    <div class="card"><h4>Нет значения — «Нет данных»</h4><p>Аванс, НДС, лимит бюджета и срок оплаты не подходят под шаблоны условий и никогда не подставляются вместо суммы или срока.</p></div>
+    <div class="card"><h4>Конфликт соглашений</h4><p>Разные даты вступления в силу — применяется более позднее, с пометкой. Одинаковые даты и разные значения — «Требуется проверка».</p></div>
+    <div class="card"><h4>Имя файла не источник</h4><p>Идентификатор документа — хэш содержимого. Переименование и порядок загрузки не меняют результат: это проверяют тесты.</p></div>
+    <div class="card"><h4>Цитата — часть модели данных</h4><p>Каждое значение хранит файл, абзац и дословный текст. Код проверяет, что цитата есть в исходнике, а значение — в цитате.</p></div>
+  </div>
+  <h3>Пример на учебном наборе (дата проверки 10.03.2026)</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Договор</th><th>Исходно</th><th>Документы</th><th>Действует</th></tr></thead>
+    <tbody>
+      <tr><td>STN-101</td><td>1 200 000 ₽ · 15.04.2026</td><td>ДС № 1 подписано, в силе с 01.03; проект ДС № 2 не подписан</td><td><b>1 380 000 ₽ · 30.04.2026</b><br><span class="small">проект 1 450 000 ₽ / 10.05 не применяется</span></td></tr>
+      <tr><td>STN-102</td><td>840 000 ₽ · 20.03.2026</td><td>Письмо: перенос на 27.03, согласия нет</td><td><b>840 000 ₽ · 20.03.2026</b><br><span class="small">письмо — предложение</span></td></tr>
+      <tr><td>STN-103</td><td>Сумма в приложении, которого нет · лимит 600 000 ₽</td><td>—</td><td><b>Нет данных · 30.04.2026</b></td></tr>
+    </tbody>
+  </table></div>
+</div></section>
+
+<section id="tech"><div class="wrap">
+  <div class="num">08 · TECHNOLOGY &amp; AI-ASSISTED DEVELOPMENT</div>
+  <h2>Простая архитектура, в которой каждый шаг проверяем</h2>
+  <div class="diagram" role="img" aria-label="Архитектура: загрузчик, классификатор, связывание, извлечение, правила, доказательства, интерфейс">
+    <svg viewBox="0 0 960 200" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, Segoe UI, Roboto, Arial, sans-serif">
+      <defs><marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#7b828c"/></marker></defs>
+      <g font-size="13.5" text-anchor="middle">
+        <rect x="10" y="60" width="104" height="80" rx="10" fill="#fff" stroke="#e6e4df"/><text x="62" y="96" font-weight="600" fill="#1c1f23">Loader</text><text x="62" y="116" font-size="11.5" fill="#4a5059">абзацы p&lt;N&gt;</text>
+        <rect x="146" y="60" width="118" height="80" rx="10" fill="#fff" stroke="#e6e4df"/><text x="205" y="96" font-weight="600" fill="#1c1f23">Classifier</text><text x="205" y="116" font-size="11.5" fill="#4a5059">тип, подпись, дата</text>
+        <rect x="296" y="60" width="104" height="80" rx="10" fill="#fff" stroke="#e6e4df"/><text x="348" y="96" font-weight="600" fill="#1c1f23">Linker</text><text x="348" y="116" font-size="11.5" fill="#4a5059">номер в тексте</text>
+        <rect x="432" y="60" width="118" height="80" rx="10" fill="#fff" stroke="#e6e4df"/><text x="491" y="96" font-weight="600" fill="#1c1f23">Extractors</text><text x="491" y="116" font-size="11.5" fill="#4a5059">реестр FieldSpec</text>
+        <rect x="582" y="52" width="130" height="96" rx="10" fill="#fdf3e3" stroke="#b45309"/><text x="647" y="94" font-weight="600" fill="#b45309">Rules Engine</text><text x="647" y="114" font-size="11.5" fill="#4a5059">условия на дату</text>
+        <rect x="744" y="60" width="96" height="80" rx="10" fill="#fff" stroke="#e6e4df"/><text x="792" y="96" font-weight="600" fill="#1c1f23">Evidence</text><text x="792" y="116" font-size="11.5" fill="#4a5059">проверка цитат</text>
+        <rect x="872" y="60" width="78" height="80" rx="10" fill="#1c1f23"/><text x="911" y="104" font-weight="600" fill="#fff">UI</text>
+      </g>
+      <g stroke="#7b828c" marker-end="url(#b)">
+        <line x1="114" y1="100" x2="142" y2="100"/><line x1="264" y1="100" x2="292" y2="100"/><line x1="400" y1="100" x2="428" y2="100"/>
+        <line x1="550" y1="100" x2="578" y2="100"/><line x1="712" y1="100" x2="740" y2="100"/><line x1="840" y1="100" x2="868" y2="100"/>
+      </g>
+      <text x="480" y="182" text-anchor="middle" font-size="12.5" fill="#7b828c">Python 3.13 · стандартная библиотека · Streamlit 1.66 · pytest 8.4 · без LLM и внешних API · ≈ 1 580 строк, включая тесты</text>
+    </svg>
+  </div>
+
+  <h3>Почему без LLM внутри приложения</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Критерий</th><th>Правила — выбрано</th><th>LLM</th></tr></thead>
+    <tbody>
+      <tr><td>Воспроизводимость</td><td>Одинаковый вход — одинаковый ответ</td><td>Ответ может меняться</td></tr>
+      <tr><td>Галлюцинации</td><td>Невозможны по построению</td><td>Нужен отдельный контроль</td></tr>
+      <tr><td>Объяснимость</td><td>Совпадение шаблона в конкретном абзаце</td><td>Объяснение генерирует модель</td></tr>
+      <tr><td>Гибкость к формулировкам</td><td>Низкая</td><td>Высокая</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small">Следующий шаг для реальных договоров — гибрид: LLM предлагает кандидата, правила и проверка цитаты решают, принять ли его.</p>
+
+  <h3>Разделение ролей: Product Owner и Claude Code</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Этап</th><th>Я — Product Owner</th><th>Claude Code</th></tr></thead>
+    <tbody>
+      <tr><td>Постановка</td><td>Правила, модель данных, 14 тестовых сценариев, экраны, критерии готовности</td><td>Анализ документов, риски, архитектура</td></tr>
+      <tr><td>Реализация</td><td>Запрет хардкода ответов и логики под конкретные договоры</td><td>Код, интерфейс, тесты, документация</td></tr>
+      <tr><td>Проверка</td><td>«Не заявлять, что тесты пройдены, без запуска»</td><td>Запуск тестов, мутационная проверка</td></tr>
+      <tr><td>Приемка</td><td>Список сценариев для финальной проверки: загрузка, таблица, вопросы, переходы к цитатам</td><td>Прошел сценарии в браузере, нашел и исправил 2 дефекта, добавил регрессионный тест</td></tr>
+      <tr><td>Публикация</td><td>Публичный репозиторий, Streamlit Cloud</td><td>Репозиторий, диагностика входа, публикация, проверка облака</td></tr>
+    </tbody>
+  </table></div>
+</div></section>
+
+<section id="qa"><div class="wrap">
+  <div class="num">09 · VALIDATION &amp; QUALITY ASSURANCE</div>
+  <h2>34 теста — и ручная приемка, которая нашла то, что тесты пропустили</h2>
+  <div class="grid g3">
+    <div class="card"><div class="kpi">19<small>бизнес-сценариев: 14 обязательных и варианты</small></div></div>
+    <div class="card"><div class="kpi">10<small>тестов компонентов: кодировки, отрицания, связи</small></div></div>
+    <div class="card"><div class="kpi">5<small>тестов вопросов и сквозного UI-сценария</small></div></div>
+  </div>
+  <p class="muted" style="margin-top:16px"><b>Тесты действительно ловят ошибки:</b> при отключенном правиле «неподписанные документы не применяются» упало 5 тестов. Отдельно проверены: правка суммы в исходном TXT меняет ответ, новый договор появляется без изменения кода, переименование файлов и смена порядка загрузки результат не меняют.</p>
+
+  <h3>Дефект 1 · Цитата чужого договора на экране</h3>
+  <div class="bug">
+    <div><b>Проблема</b>После смены договора панель показывала цитату из предыдущего</div>
+    <div><b>Причина</b>Выбранный источник не был привязан к договору</div>
+    <div><b>Исправление</b>Панель источника сбрасывается при смене договора</div>
+    <div><b>Проверка</b>Новый шаг теста падал без исправления и проходит с ним</div>
+  </div>
+  <h3>Дефект 2 · Источник открывался за пределами экрана</h3>
+  <div class="bug">
+    <div><b>Проблема</b>Кнопка внизу карточки открывала абзац вверху страницы</div>
+    <div><b>Причина</b>Панель источника прокручивалась вместе со страницей</div>
+    <div><b>Исправление</b>Панель закреплена при прокрутке</div>
+    <div><b>Проверка</b>Визуально в браузере; данные сохраняются при перезагрузке кода</div>
+  </div>
+</div></section>
+
+<section id="results"><div class="wrap">
+  <div class="num">10 · RESULTS &amp; BUSINESS VALUE</div>
+  <h2>Что подтверждено и что пока гипотеза</h2>
+  <div class="grid g2">
+    <div class="card"><span class="tag ok">Подтверждено</span>
+      <p style="margin-top:10px">Приложение работает локально и <a href="https://semantic-textnavigator.streamlit.app">публично</a> · верные действующие условия по трем договорам, включая ловушки · цитата с программной проверкой у каждого подтвержденного значения · 34/34 теста · новый договор без изменения кода</p></div>
+    <div class="card"><span class="tag hyp">Потенциальный эффект · не измерялся</span>
+      <p style="margin-top:10px">Сокращение ручной сверки · исключение ошибок с неподписанными изменениями · прозрачность решений для юристов и руководителей · ускорение работы закупщиков. Подтвердить на пилоте замером «до/после».</p></div>
+  </div>
+</div></section>
+
+<section id="decisions"><div class="wrap">
+  <div class="num">11 · KEY DECISIONS &amp; TRADE-OFFS</div>
+  <h2>Точность и объяснимость — выше гибкости</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Решение</th><th>Альтернативы</th><th>Чем пожертвовали</th><th>Оставшийся риск</th></tr></thead>
+    <tbody>
+      <tr><td><b>Правила вместо LLM</b></td><td>LLM-извлечение; гибрид</td><td>Гибкостью к новым формулировкам</td><td>Много «Нет данных» на реальных договорах</td></tr>
+      <tr><td><b>Консервативные статусы</b></td><td>«Самое вероятное» значение</td><td>Полнотой автоматизации</td><td>Частые ручные проверки на «грязных» документах</td></tr>
+      <tr><td><b>ДС меняет только изложенные пункты</b></td><td>Брать любые суммы и даты из ДС</td><td>Косвенные изменения («+15%»)</td><td>Такие изменения не распознаются</td></tr>
+      <tr><td><b>Более позднее ДС побеждает, равные даты — на проверку</b></td><td>Всегда проверка; порядок загрузки</td><td>Простотой объяснения</td><td>«Отменить ДС № 1» не распознается</td></tr>
+      <tr><td><b>Streamlit</b></td><td>React + API</td><td>Гибкостью верстки</td><td>Для продакшена интерфейс придется переписать</td></tr>
+    </tbody>
+  </table></div>
+</div></section>
+
+<section id="roadmap"><div class="wrap">
+  <div class="num">12 · ROADMAP &amp; SCALING</div>
+  <h2>Следующие шаги <span class="tag todo">не реализовано</span></h2>
+  <div class="grid g3">
+    <div class="card"><h4>1. Ручное подтверждение</h4><p>Комментарий и решение по «Требуется проверка» — закрывает цикл и дает разметку для метрики точности.</p></div>
+    <div class="card"><h4>2. DOCX и PDF</h4><p>Документы с текстовым слоем — главный барьер реального использования.</p></div>
+    <div class="card"><h4>3. Новые поля</h4><p>Неустойка, условия оплаты, график партий. Путь расширения уже проверен.</p></div>
+    <div class="card"><h4>4. Гибридное извлечение</h4><p>LLM предлагает, правила и проверка цитаты валидируют.</p></div>
+    <div class="card"><h4>5. Интеграции</h4><p>СЭД, ERP/1С, ЭДО: документы без ручной загрузки, статус подписи из ЭДО.</p></div>
+    <div class="card"><h4>6. Роли и аудит</h4><p>Права на документ и на результат, журнал решений.</p></div>
+  </div>
+  <h3>При 100 000 документов</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Сейчас</th><th>При масштабе</th></tr></thead>
+    <tbody>
+      <tr><td>Синхронный анализ в сессии</td><td>Очередь задач и воркеры; идемпотентность по хэшу содержимого (уже служит id документа)</td></tr>
+      <tr><td>Файлы в памяти</td><td>Объектное хранилище для оригиналов, PostgreSQL для условий и цитат</td></tr>
+      <tr><td>Нет поиска</td><td>Поисковый индекс по абзацам с фильтрами по договору, типу, статусу</td></tr>
+      <tr><td>Пересчет всего пакета</td><td>Инкрементальный пересчет связанного договора; переобработка при новой версии правил</td></tr>
+      <tr><td>Нет прав и аудита</td><td>ACL на документ и на результат; журнал «кто, что, какой версией правил»</td></tr>
+    </tbody>
+  </table></div>
+</div></section>
+
+<section id="lessons"><div class="wrap">
+  <div class="num">13 · LESSONS LEARNED</div>
+  <h2>Выводы Product Lead</h2>
+  <ol class="lessons">
+    <li><b>AI ускоряет реализацию, но не заменяет приемку.</b> Первая версия с тестами появилась примерно за 11 минут работы агента, но оба дефекта интерфейса прошли автотесты и нашлись только при ручном проходе сценария.</li>
+    <li><b>Критерии приемки — главный инструмент управления AI-разработкой.</b> 14 сценариев, запрет хардкода и требование показывать фактические результаты тестов сделали работу агента проверяемой.</li>
+    <li><b>Бизнес-правила важнее визуальной сложности.</b> Ценность — в правиле «условия меняет только подписанное и вступившее в силу соглашение»; оно сформулировано до первой строки кода.</li>
+    <li><b>Проверяемость — условие доверия.</b> Без цитаты закупщик перепроверит вручную, и продукт потеряет смысл. Поэтому цитата — часть модели данных.</li>
+    <li><b>Честное «не знаю» — продуктовая функция.</b> «Нет данных» вместо бюджетного лимита защищает пользователя от ошибки.</li>
+  </ol>
+</div></section>
+
+</main>
+
+<footer><div class="wrap">
+  Semantic TextNavigator · Product Owner: Кристина Манаф · разработка: Claude Code · 02.11.2026<br>
+  Приложение: <a href="https://semantic-textnavigator.streamlit.app">semantic-textnavigator.streamlit.app</a> · Код: <a href="https://github.com/manafkristina-max/semantic-textnavigator">github.com/manafkristina-max/semantic-textnavigator</a><br>
+  Все скриншоты — реальные снимки приложения на учебных документах. Метрики эффекта — предложенные KPI, не результаты измерений.
+</div></footer>
+
+</body>
+</html>
